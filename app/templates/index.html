@@ -1,0 +1,556 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>CLIPP Instance Generator &amp; Validator</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <style>
+    :root {
+      color-scheme: light;
+      --ui-scale: 2.0;
+      --bg: #c8c8f0;
+      --surface: #d7d7d7;
+      --border: #e2e2e6;
+      --border-subtle: #e0e0e0;
+      --text-main: #111827;
+      --text-muted: #6b7280;
+      --accent: #111827;
+      --accent-soft: #f3f4f6;
+      --danger: #b91c1c;
+      --success: #15803d;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      font-size: 18px;
+      background: var(--surface);
+      color: var(--text-main);
+      overflow-x: hidden;
+    }
+
+    .shell {
+      width: calc(100% / var(--ui-scale));
+      max-width: none;
+      min-height: 100vh;
+      margin: 0;
+      background: var(--surface);
+      border-radius: 0;
+      border: 0;
+      box-shadow: none;
+      transform: scale(var(--ui-scale));
+      transform-origin: top left;
+    }
+
+    .shell-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 14px 18px;
+      border-bottom: 1px solid var(--border);
+      background: #fafafa;
+    }
+
+    .title {
+      font-size: 14px;
+      font-weight: 500;
+      letter-spacing: 0.02em;
+      color: var(--text-muted);
+    }
+
+    .shell-body {
+      padding: 8px 32px 8px;
+      display: grid;
+      grid-template-columns: minmax(0, 1.1fr) minmax(0, 0.9fr);
+      gap: 12px;
+    }
+
+    @media (max-width: 900px) {
+      .shell-body {
+        grid-template-columns: minmax(0, 1fr);
+      }
+    }
+
+    h2 {
+      margin: 0 0 8px;
+      font-size: 15px;
+      font-weight: 500;
+      letter-spacing: 0;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    h2 span.badge {
+      font-size: 11px;
+      text-transform: uppercase;
+      letter-spacing: 0.12em;
+      padding: 1px 6px;
+      border-radius: 999px;
+      background: var(--accent-soft);
+      color: var(--text-muted);
+      border: 1px solid var(--border);
+    }
+
+    p.description {
+      margin: 0 0 12px;
+      font-size: 13px;
+      color: var(--text-muted);
+      line-height: 1.4;
+    }
+
+    .panel {
+      border-radius: 10px;
+      padding: 16px 16px 14px;
+      background: #ffffff;
+      border: 1px solid var(--border);
+    }
+
+    .panel.secondary {
+      background: #f9fafb;
+    }
+
+    .fieldset-grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 10px 12px;
+      margin-bottom: 14px;
+    }
+
+    .field {
+      display: flex;
+      flex-direction: column;
+      gap: 3px;
+      font-size: 12px;
+    }
+
+    .field label {
+      color: var(--text-muted);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .field span.hint {
+      font-size: 11px;
+      color: var(--text-muted);
+    }
+
+    input[type="number"],
+    input[type="text"] {
+      font: inherit;
+      padding: 6px 9px;
+      border-radius: 8px;
+      border: 1px solid var(--border-subtle);
+      background: #fff;
+      color: var(--text-main);
+      outline: none;
+      transition: border-color 0.12s ease, box-shadow 0.12s ease, background 0.12s ease;
+    }
+
+    input[type="number"]:focus,
+    input[type="text"]:focus {
+      border-color: #111827;
+      box-shadow: 0 0 0 1px rgba(15, 23, 42, 0.07);
+    }
+
+    input::placeholder {
+      color: #9ca3af;
+    }
+
+    .output-row {
+      margin-bottom: 8px;
+    }
+
+    .button-row {
+      display: flex;
+      justify-content: flex-end;
+      gap: 10px;
+      margin-top: 6px;
+    }
+
+    button {
+      font: inherit;
+      border-radius: 999px;
+      border: 1px solid #111827;
+      padding: 6px 14px;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      background: #111827;
+      color: #f9fafb;
+      font-size: 13px;
+      font-weight: 500;
+      box-shadow: none;
+      transition: background 0.12s ease, border-color 0.12s ease, transform 0.06s ease;
+    }
+
+    button span.icon {
+      font-size: 13px;
+    }
+
+    button:hover {
+      background: #020617;
+      border-color: #020617;
+      transform: translateY(-0.5px);
+    }
+
+    button:active {
+      transform: translateY(0);
+    }
+
+    button.secondary {
+      background: #ffffff;
+      color: #111827;
+      border-color: var(--border);
+    }
+
+    button.secondary:hover {
+      background: #f3f4f6;
+      border-color: #d4d4d8;
+    }
+
+    .flash-list {
+      margin: 0 0 12px;
+      padding: 0;
+      list-style: none;
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+
+    .flash {
+      font-size: 12px;
+      padding: 6px 8px;
+      border-radius: 8px;
+      border: 1px solid var(--border);
+      background: #f9fafb;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .flash.success {
+      border-color: rgba(22, 163, 74, 0.35);
+      background: #ecfdf3;
+      color: var(--success);
+    }
+
+    .flash.error {
+      border-color: rgba(185, 28, 28, 0.35);
+      background: #fef2f2;
+      color: var(--danger);
+    }
+
+    .flash span.dot {
+      width: 6px;
+      height: 6px;
+      border-radius: 999px;
+      background: currentColor;
+    }
+
+    .meta {
+      font-size: 11px;
+      color: var(--text-muted);
+      margin-top: 8px;
+      display: flex;
+      justify-content: space-between;
+      gap: 6px;
+      flex-wrap: wrap;
+    }
+
+    .samples {
+      margin-top: 16px;
+    }
+
+    .samples h3 {
+      margin: 0 0 6px;
+      font-size: 13px;
+      font-weight: 500;
+      color: var(--text-main);
+    }
+
+    .samples-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 12px;
+    }
+
+    .samples-table th,
+    .samples-table td {
+      padding: 4px 6px;
+      border-bottom: 1px solid var(--border-subtle);
+      text-align: left;
+      white-space: nowrap;
+    }
+
+    .samples-table th {
+      font-weight: 500;
+      color: var(--text-muted);
+    }
+
+    .samples-actions a {
+      font-size: 12px;
+      text-decoration: none;
+      color: #111827;
+      border-radius: 999px;
+      border: 1px solid var(--border);
+      padding: 3px 8px;
+      background: #f9fafb;
+    }
+
+    .samples-actions a:hover {
+      background: #f3f4f6;
+    }
+
+    code {
+      font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+      font-size: 11px;
+      padding: 1px 4px;
+      border-radius: 4px;
+      background: #f3f4f6;
+      border: 1px solid #e5e7eb;
+      color: #374151;
+    }
+  </style>
+</head>
+<body>
+  <div class="shell">
+    <div class="shell-header">
+      <div class="title">CLIPP instance generator &amp; validator</div>
+      <div style="font-size: 11px; color: #9ca3af;">web UI</div>
+    </div>
+
+    <div class="shell-body">
+      <section>
+        <div class="panel">
+          <h2>
+            Instance generator
+            <span class="badge">v2</span>
+          </h2>
+          <p class="description">
+            Fill in the parameters and click Generate to create a CLIPP instance; the file
+            will be downloaded to your computer.
+          </p>
+
+          {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+              <ul class="flash-list">
+                {% for category, msg in messages %}
+                  <li class="flash {{ category }}">
+                    <span class="dot"></span>
+                    <span>{{ msg }}</span>
+                  </li>
+                {% endfor %}
+              </ul>
+            {% endif %}
+          {% endwith %}
+
+          <form method="post" action="{{ url_for('generate') }}">
+            <div class="fieldset-grid">
+              <div class="field">
+                <label>
+                  N (junctions)
+                  <span class="hint">size of graph</span>
+                </label>
+                <input
+                  type="number"
+                  name="n_junctions"
+                  min="1"
+                  value="{{ default_params.n_junctions }}"
+                  required
+                >
+              </div>
+              <div class="field">
+                <label>
+                  M (streets)
+                  <span class="hint">edges</span>
+                </label>
+                <input
+                  type="number"
+                  name="n_streets"
+                  min="1"
+                  value="{{ default_params.n_streets }}"
+                  required
+                >
+              </div>
+              <div class="field">
+                <label>
+                  C (vehicles)
+                  <span class="hint">2–100</span>
+                </label>
+                <input
+                  type="number"
+                  name="n_vehicles"
+                  min="2"
+                  value="{{ default_params.n_vehicles }}"
+                  required
+                >
+              </div>
+              <div class="field">
+                <label>
+                  T (time limit, s)
+                  <span class="hint">lower bound; auto‑raised</span>
+                </label>
+                <input
+                  type="number"
+                  name="time_limit"
+                  min="1"
+                  value="{{ default_params.time_limit }}"
+                  required
+                >
+              </div>
+              <div class="field">
+                <label>
+                  Depot index
+                  <span class="hint">0 ≤ depot &lt; N</span>
+                </label>
+                <input
+                  type="number"
+                  name="depot"
+                  min="0"
+                  value="{{ default_params.depot }}"
+                  required
+                >
+              </div>
+              <div class="field">
+                <label>
+                  W penalty
+                  <span class="hint">waste factor</span>
+                </label>
+                <input
+                  type="number"
+                  step="0.1"
+                  name="w_penalty"
+                  value="{{ default_params.w_penalty }}"
+                  required
+                >
+              </div>
+              <div class="field">
+                <label>
+                  Seed
+                  <span class="hint">optional</span>
+                </label>
+                <input
+                  type="number"
+                  name="seed"
+                  placeholder="random if empty"
+                  value="{{ default_params.seed }}"
+                >
+              </div>
+              <div class="field output-row">
+                <label>
+                  Download filename
+                  <span class="hint">e.g. instance.txt</span>
+                </label>
+                <input
+                  type="text"
+                  name="filename"
+                  value="{{ default_params.filename }}"
+                  placeholder="instance.txt"
+                >
+              </div>
+            </div>
+
+            <div class="button-row">
+              <button type="submit">
+                <span class="icon">▶</span>
+                Generate instance
+              </button>
+            </div>
+          </form>
+
+          <div class="meta">
+            <span>Uses the same generator and feasibility rules as your CLI.</span>
+            <span>The instance file is downloaded to your computer; nothing is saved on the server.</span>
+          </div>
+
+          {% if samples %}
+          <div class="samples">
+            <h3>Example instances</h3>
+            <table class="samples-table">
+              <thead>
+                <tr>
+                  <th>File</th>
+                  <th>N</th>
+                  <th>M</th>
+                  <th>T</th>
+                  <th>C</th>
+                  <th>Depot</th>
+                  <th>W</th>
+                  <th>Vehicles</th>
+                  <th></th>
+                </tr>
+              </thead>
+              <tbody>
+                {% for s in samples %}
+                <tr>
+                  <td>{{ s.name }}</td>
+                  <td>{{ s.n_junctions }}</td>
+                  <td>{{ s.n_streets }}</td>
+                  <td>{{ s.time_limit }}</td>
+                  <td>{{ s.n_vehicles }}</td>
+                  <td>{{ s.depot }}</td>
+                  <td>{{ '%.2f' % s.w_penalty }}</td>
+                  <td>{{ s.vehicle_types }}</td>
+                  <td class="samples-actions">
+                    <a href="{{ url_for('download_sample', name=s.name) }}">Download</a>
+                  </td>
+                </tr>
+                {% endfor %}
+              </tbody>
+            </table>
+          </div>
+          {% endif %}
+        </div>
+      </section>
+
+      <section>
+        <div class="panel secondary">
+          <h2>
+            Instance validator
+            <span class="badge">checks 1–7</span>
+          </h2>
+          <p class="description">
+            Upload an instance file and see a step‑by‑step report of which checks
+            passed, and where validation stops if something is invalid.
+          </p>
+
+          <form method="post" action="{{ url_for('validate') }}" enctype="multipart/form-data">
+            <div class="field">
+              <label>
+                Instance file
+                <span class="hint">.txt file generated by the tool or your solver</span>
+              </label>
+              <input
+                type="file"
+                name="instance_file"
+                accept=".txt"
+                required
+              >
+            </div>
+
+            <div class="button-row">
+              <button class="secondary" type="submit">
+                <span class="icon">☑</span>
+                Validate instance
+              </button>
+            </div>
+          </form>
+
+          <div class="meta">
+            <span>Validation messages are grouped in the same categories as your CLI output.</span>
+            <span>No instance files are stored on the server; they are validated in memory only.</span>
+          </div>
+        </div>
+      </section>
+    </div>
+  </div>
+</body>
+</html>
+
