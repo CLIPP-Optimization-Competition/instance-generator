@@ -1,6 +1,14 @@
 # CLIPP Instance Generator
 
 Instance generator for the **CLIPP** problem. The problem definition is given [here](https://drive.google.com/file/d/1cpVz1BvfG_ItNjddxG_KMIG5tULpsbd7/view?usp=sharing).
+
+You can generate and validate instances in the browser:
+**https://clipp-insancegenerator.onrender.com**
+
+<img width="1000" height="1000" alt="image" src="https://github.com/user-attachments/assets/a7c84db0-c098-42d9-9c99-672ce63020ac" />
+
+Generate: set parameters and download the instance file. Validate: upload a `.txt` instance and see which checks pass or fail.
+
 ## Main scripts
 
 - **`instance_generator.py`** — Generates random feasible CLIPP instances (graph, streets, vehicle types) and writes them to a file. 
@@ -25,17 +33,7 @@ python instance_validator.py instances/my_instance.txt
 pip install -r requirements.txt
 python -m app.main
 ```
-Then open http://localhost:5000.
-
-## Create instances from the web
-
-You can generate and validate instances in the browser:
-
-**https://clipp-insancegenerator.onrender.com**
-
-Generate: set parameters and download the instance file. Validate: upload a `.txt` instance and see which checks pass or fail.
-
----
+Then open **http://localhost:5000**.
 
 ## How an instance is created
 
