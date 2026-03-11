@@ -1,1 +1,1 @@
-web: gunicorn wsgi:app --bind 0.0.0.0:$PORT
+web: PYTHONPATH=. gunicorn app.main:app --bind 0.0.0.0:$PORT
