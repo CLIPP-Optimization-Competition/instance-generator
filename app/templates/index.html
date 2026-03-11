@@ -67,6 +67,7 @@
       display: grid;
       grid-template-columns: minmax(0, 1.1fr) minmax(0, 0.9fr);
       gap: 12px;
+      min-width: 0;
     }
 
     @media (max-width: 900px) {
@@ -103,6 +104,10 @@
       line-height: 1.4;
     }
 
+    section {
+      min-width: 0;
+    }
+
     .panel {
       border-radius: 10px;
       padding: 16px 16px 14px;
@@ -112,6 +117,10 @@
 
     .panel.secondary {
       background: #f9fafb;
+    }
+
+    .panel {
+      min-width: 0;
     }
 
     .fieldset-grid {
@@ -150,6 +159,8 @@
       color: var(--text-main);
       outline: none;
       transition: border-color 0.12s ease, box-shadow 0.12s ease, background 0.12s ease;
+      min-width: 0;
+      width: 100%;
     }
 
     input[type="number"]:focus,
@@ -266,6 +277,7 @@
 
     .samples {
       margin-top: 16px;
+      min-width: 0;
     }
 
     .samples h3 {
@@ -275,8 +287,15 @@
       color: var(--text-main);
     }
 
+    .samples-table-wrap {
+      overflow-x: auto;
+      -webkit-overflow-scrolling: touch;
+      margin: 0 -4px;
+    }
+
     .samples-table {
       width: 100%;
+      min-width: 520px;
       border-collapse: collapse;
       font-size: 12px;
     }
@@ -305,7 +324,49 @@
     }
 
     .samples-actions a:hover {
-      background: #f3f4f6;
+      background: #e5e7eb;
+      border-color: #d1d5db;
+    }
+
+    button:disabled,
+    button.loading {
+      opacity: 0.8;
+      cursor: wait;
+    }
+
+    button.loading .icon,
+    button.loading .btn-text {
+      display: none;
+    }
+
+    button.loading .btn-loading {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .btn-loading {
+      display: none;
+    }
+
+    .btn-loading::before {
+      content: "";
+      width: 14px;
+      height: 14px;
+      border: 2px solid currentColor;
+      border-right-color: transparent;
+      border-radius: 50%;
+      animation: spin 0.6s linear infinite;
+    }
+
+    @keyframes spin {
+      to { transform: rotate(360deg); }
+    }
+
+    .meta.note-latency {
+      margin-top: 6px;
+      font-size: 11px;
+      color: var(--text-muted);
     }
 
     code {
@@ -316,6 +377,29 @@
       background: #f3f4f6;
       border: 1px solid #e5e7eb;
       color: #374151;
+    }
+
+    /* Responsive: stack and reflow so nothing falls out when zoomed or narrow */
+    @media (max-width: 720px) {
+      .shell-body {
+        grid-template-columns: 1fr;
+        padding: 8px 16px 8px;
+      }
+    }
+
+    @media (max-width: 560px) {
+      .fieldset-grid {
+        grid-template-columns: 1fr;
+      }
+      .shell-body {
+        padding: 8px 12px 8px;
+      }
+    }
+
+    @media (max-width: 400px) {
+      .meta {
+        flex-direction: column;
+      }
     }
   </style>
 </head>
@@ -351,7 +435,7 @@
             {% endif %}
           {% endwith %}
 
-          <form method="post" action="{{ url_for('generate') }}">
+          <form method="post" action="{{ url_for('generate') }}" id="form-generate">
             <div class="fieldset-grid">
               <div class="field">
                 <label>
@@ -458,9 +542,10 @@
             </div>
 
             <div class="button-row">
-              <button type="submit">
+              <button type="submit" id="btn-generate">
                 <span class="icon">▶</span>
-                Generate instance
+                <span class="btn-text">Generate instance</span>
+                <span class="btn-loading">Generating…</span>
               </button>
             </div>
           </form>
@@ -469,10 +554,12 @@
             <span>Uses the same generator and feasibility rules as your CLI.</span>
             <span>The instance file is downloaded to your computer; nothing is saved on the server.</span>
           </div>
+          <p class="meta note-latency">If the app was idle, the first action can take 30–60 seconds (free hosting).</p>
 
           {% if samples %}
           <div class="samples">
             <h3>Example instances</h3>
+            <div class="samples-table-wrap">
             <table class="samples-table">
               <thead>
                 <tr>
@@ -505,6 +592,7 @@
                 {% endfor %}
               </tbody>
             </table>
+            </div>
           </div>
           {% endif %}
         </div>
@@ -521,7 +609,7 @@
             passed, and where validation stops if something is invalid.
           </p>
 
-          <form method="post" action="{{ url_for('validate') }}" enctype="multipart/form-data">
+          <form method="post" action="{{ url_for('validate') }}" enctype="multipart/form-data" id="form-validate">
             <div class="field">
               <label>
                 Instance file
@@ -536,9 +624,10 @@
             </div>
 
             <div class="button-row">
-              <button class="secondary" type="submit">
+              <button class="secondary" type="submit" id="btn-validate">
                 <span class="icon">☑</span>
-                Validate instance
+                <span class="btn-text">Validate instance</span>
+                <span class="btn-loading">Validating…</span>
               </button>
             </div>
           </form>
@@ -551,6 +640,26 @@
       </section>
     </div>
   </div>
+  <script>
+    (function () {
+      var formGen = document.getElementById('form-generate');
+      var btnGen = document.getElementById('btn-generate');
+      if (formGen && btnGen) {
+        formGen.addEventListener('submit', function () {
+          btnGen.disabled = true;
+          btnGen.classList.add('loading');
+        });
+      }
+      var formVal = document.getElementById('form-validate');
+      var btnVal = document.getElementById('btn-validate');
+      if (formVal && btnVal) {
+        formVal.addEventListener('submit', function () {
+          btnVal.disabled = true;
+          btnVal.classList.add('loading');
+        });
+      }
+    })();
+  </script>
 </body>
 </html>
 
