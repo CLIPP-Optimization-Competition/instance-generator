@@ -435,7 +435,7 @@
             {% endif %}
           {% endwith %}
 
-          <form method="post" action="{{ url_for('generate') }}" id="form-generate">
+          <form method="post" action="{{ url_for('generate') }}" id="form-generate" class="form-download">
             <div class="fieldset-grid">
               <div class="field">
                 <label>
@@ -637,19 +637,216 @@
             <span>No instance files are stored on the server; they are validated in memory only.</span>
           </div>
         </div>
+
+        <div class="panel" style="margin-top: 16px;">
+          <h2 style="margin-bottom: 4px;">
+            8h fixed instances
+            <span class="badge">T=28800</span>
+          </h2>
+          <p class="description">
+            Generate or download instances with time limit fixed at 8 hours (28800 s) and
+            FULL FEASIBILITY: yes (greedy packing succeeds). Uses the same logic as
+            <code>generate_fixed_t_8h.py</code> (in-process; not running the script).
+          </p>
+          <div id="generate-8h-message" class="flash-list" style="display: none; margin-bottom: 10px;"></div>
+          <form method="post" action="{{ url_for('generate_8h') }}" id="form-generate-8h" class="form-download">
+            <div class="fieldset-grid">
+              <div class="field">
+                <label>N (junctions)</label>
+                <input type="number" name="n_junctions_8h" min="1" value="20" required>
+              </div>
+              <div class="field">
+                <label>M (streets)</label>
+                <input type="number" name="n_streets_8h" min="1" value="45" required>
+              </div>
+              <div class="field">
+                <label>C (vehicles)</label>
+                <input type="number" name="n_vehicles_8h" min="2" value="5" required>
+              </div>
+              <div class="field">
+                <label>Depot</label>
+                <input type="number" name="depot_8h" min="0" value="0" required>
+              </div>
+              <div class="field">
+                <label>W penalty</label>
+                <input type="number" name="w_penalty_8h" step="0.1" value="1.0" required>
+              </div>
+              <div class="field">
+                <label>Max attempts</label>
+                <input type="number" name="max_attempts_8h" min="1" max="500" value="300" title="Up to 500">
+              </div>
+              <div class="field">
+                <label>Download as</label>
+                <input type="text" name="filename_8h" value="instance_8h.txt" placeholder="instance_8h.txt">
+              </div>
+            </div>
+            <div class="button-row">
+              <button type="submit" id="btn-generate-8h">
+                <span class="icon">▶</span>
+                <span class="btn-text">Generate 8h instance</span>
+                <span class="btn-loading">Generating…</span>
+              </button>
+            </div>
+          </form>
+          {% if samples_8h %}
+          <h3 style="margin-top: 14px;">Predefined 8h instances</h3>
+          <div class="samples-table-wrap">
+          <table class="samples-table">
+            <thead>
+              <tr>
+                <th>File</th>
+                <th>N</th>
+                <th>M</th>
+                <th>T</th>
+                <th>C</th>
+                <th>Depot</th>
+                <th>W</th>
+                <th>Vehicles</th>
+                <th></th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for s in samples_8h %}
+              <tr>
+                <td>{{ s.name }}</td>
+                <td>{{ s.n_junctions }}</td>
+                <td>{{ s.n_streets }}</td>
+                <td>{{ s.time_limit }}</td>
+                <td>{{ s.n_vehicles }}</td>
+                <td>{{ s.depot }}</td>
+                <td>{{ '%.2f' % s.w_penalty }}</td>
+                <td>{{ s.vehicle_types }}</td>
+                <td class="samples-actions">
+                  <a href="{{ url_for('download_8h', name=s.name) }}">Download</a>
+                </td>
+              </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+          </div>
+          {% endif %}
+        </div>
       </section>
     </div>
   </div>
   <script>
     (function () {
-      var formGen = document.getElementById('form-generate');
-      var btnGen = document.getElementById('btn-generate');
-      if (formGen && btnGen) {
-        formGen.addEventListener('submit', function () {
-          btnGen.disabled = true;
-          btnGen.classList.add('loading');
+      function triggerDownload(blob, filename) {
+        var a = document.createElement('a');
+        a.href = URL.createObjectURL(blob);
+        a.download = filename || 'instance.txt';
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        URL.revokeObjectURL(a.href);
+      }
+
+      function resetDownloadButton(btn) {
+        if (btn) {
+          btn.disabled = false;
+          btn.classList.remove('loading');
+        }
+      }
+
+      function handleDownloadForm(form, btn) {
+        if (!form || !btn) return;
+        form.addEventListener('submit', function (e) {
+          e.preventDefault();
+          btn.disabled = true;
+          btn.classList.add('loading');
+          var formData = new FormData(form);
+          fetch(form.action, { method: 'POST', body: formData })
+            .then(function (response) {
+              if (response.redirected) {
+                window.location.href = response.url;
+                return;
+              }
+              if (!response.ok) {
+                resetDownloadButton(btn);
+                return;
+              }
+              var disp = response.headers.get('Content-Disposition');
+              var filename = 'instance.txt';
+              if (disp && disp.indexOf('filename=') !== -1) {
+                var m = disp.match(/filename="?([^";\n]+)"?/);
+                if (m) filename = m[1].trim();
+              }
+              return response.blob().then(function (blob) {
+                triggerDownload(blob, filename);
+                resetDownloadButton(btn);
+              });
+            })
+            .catch(function () {
+              resetDownloadButton(btn);
+            });
         });
       }
+
+      handleDownloadForm(document.getElementById('form-generate'), document.getElementById('btn-generate'));
+
+      (function () {
+        var form8h = document.getElementById('form-generate-8h');
+        var btn8h = document.getElementById('btn-generate-8h');
+        var msgEl = document.getElementById('generate-8h-message');
+        if (!form8h || !btn8h || !msgEl) return;
+        form8h.addEventListener('submit', function (e) {
+          e.preventDefault();
+          msgEl.style.display = 'none';
+          msgEl.innerHTML = '';
+          btn8h.disabled = true;
+          btn8h.classList.add('loading');
+          fetch(form8h.action, { method: 'POST', body: new FormData(form8h) })
+            .then(function (response) {
+              if (response.redirected) {
+                window.location.href = response.url;
+                return;
+              }
+              if (!response.ok) {
+                return response.json().then(function (data) {
+                  var msg = (data && data.error) ? data.error : 'Generation failed. Try more attempts or different parameters.';
+                  msgEl.innerHTML = '<li class="flash error"><span class="dot"></span><span>' + msg + '</span></li>';
+                  msgEl.style.display = 'block';
+                }).catch(function () {
+                  msgEl.innerHTML = '<li class="flash error"><span class="dot"></span><span>Generation failed. Try more attempts or different parameters.</span></li>';
+                  msgEl.style.display = 'block';
+                });
+                return;
+              }
+              var attempt = response.headers.get('X-Generation-Attempt');
+              var disp = response.headers.get('Content-Disposition');
+              var filename = 'instance_8h.txt';
+              if (disp && disp.indexOf('filename=') !== -1) {
+                var m = disp.match(/filename="?([^";\n]+)"?/);
+                if (m) filename = m[1].trim();
+              }
+              return response.blob().then(function (blob) {
+                var a = document.createElement('a');
+                a.href = URL.createObjectURL(blob);
+                a.download = filename;
+                document.body.appendChild(a);
+                a.click();
+                document.body.removeChild(a);
+                URL.revokeObjectURL(a.href);
+                var successMsg = attempt
+                  ? 'Instance generated on attempt ' + attempt + '. Download started.'
+                  : 'Instance generated. Download started.';
+                msgEl.innerHTML = '<li class="flash success"><span class="dot"></span><span>' + successMsg + '</span></li>';
+                msgEl.style.display = 'block';
+              });
+            })
+            .then(function () {
+              btn8h.disabled = false;
+              btn8h.classList.remove('loading');
+            })
+            .catch(function () {
+              msgEl.innerHTML = '<li class="flash error"><span class="dot"></span><span>Request failed. Try again.</span></li>';
+              msgEl.style.display = 'block';
+              btn8h.disabled = false;
+              btn8h.classList.remove('loading');
+            });
+        });
+      })();
+
       var formVal = document.getElementById('form-validate');
       var btnVal = document.getElementById('btn-validate');
       if (formVal && btnVal) {

@@ -143,6 +143,26 @@ def _check_full_feasibility_greedy(
     return len(unassigned) == 0
 
 
+def check_full_feasibility_greedy(
+    n: int,
+    depot: int,
+    T: int,
+    C: int,
+    streets: list[Street],
+) -> bool:
+    """
+    Return True if the greedy packer can assign all mandatory streets to C routes
+    each within time T. Use this to require "FULL FEASIBILITY: yes" when generating.
+    """
+    mandatory_list = [(i, s) for i, s in enumerate(streets) if s.category == "M"]
+    adj, rev = build_adjacency_with_time(streets, n)
+    dist_to_depot = dijkstra(n, depot, rev)
+    dist_matrix = _all_pairs_distances(n, adj)
+    return _check_full_feasibility_greedy(
+        n, depot, T, C, mandatory_list, dist_matrix, dist_to_depot
+    )
+
+
 def _reachable_from(adj: dict[int, list[tuple[int, int]]], start: int, n: int) -> set[int]:
     """Set of junctions reachable from start following directed edges."""
     seen = {start}

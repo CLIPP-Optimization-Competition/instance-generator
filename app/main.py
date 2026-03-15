@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import json
 import os
 from pathlib import Path
 from typing import List
@@ -14,11 +15,14 @@ from instance_generator import (
     sum_mandatory_time,
 )
 from instance_models import C_MIN, C_MAX, N_MIN, N_MAX, M_MIN, M_MAX, T_MIN, T_MAX, Street
-from instance_validator import validate_generated_instance, parse_instance_file
+from instance_validator import validate_generated_instance, parse_instance_file, check_full_feasibility_greedy
 
 
 BASE_DIR = Path(__file__).resolve().parents[1]
 INSTANCES_DIR = BASE_DIR / "instances"
+INSTANCES_8H_DIR = INSTANCES_DIR / "8h_strict"
+T_8H = 28800
+MAX_ATTEMPTS_8H = 500
 
 
 def create_app() -> Flask:
@@ -75,11 +79,34 @@ def create_app() -> Flask:
                 }
             )
 
+        # Predefined 8h fixed instances (instances/8h_strict/*.txt)
+        samples_8h: list[dict] = []
+        if INSTANCES_8H_DIR.is_dir():
+            for path in sorted(INSTANCES_8H_DIR.glob("*.txt")):
+                name = path.name
+                try:
+                    params, _streets, vehicle_types = parse_instance_file(str(path))
+                except Exception:
+                    continue
+                samples_8h.append(
+                    {
+                        "name": name,
+                        "n_junctions": params.n_junctions,
+                        "n_streets": params.n_streets,
+                        "time_limit": params.time_limit,
+                        "n_vehicles": params.n_vehicles,
+                        "depot": params.depot,
+                        "w_penalty": getattr(params, "w_penalty", 1.0),
+                        "vehicle_types": " ".join(vehicle_types),
+                    }
+                )
+
         return render_template(
             "index.html",
             default_params=default_params,
             instances_dir=str(INSTANCES_DIR.relative_to(BASE_DIR)),
             samples=samples,
+            samples_8h=samples_8h,
         )
 
     @app.route("/generate", methods=["POST"])
@@ -244,6 +271,111 @@ def create_app() -> Flask:
             overall_status=overall_status,
             messages=messages,
             error_message=error_message,
+        )
+
+    def _is_feasible_for_t(
+        n_junctions: int, depot: int, streets: list, time_limit: int, n_vehicles: int
+    ) -> bool:
+        required_t = min_round_trip_over_mandatories(n_junctions, depot, streets)
+        if required_t == float("inf") or required_t > time_limit:
+            return False
+        total_mandatory = sum_mandatory_time(streets)
+        if total_mandatory > n_vehicles * time_limit:
+            return False
+        return True
+
+    @app.route("/generate-8h", methods=["POST"])
+    def generate_8h():
+        """
+        Generate a feasible instance with T fixed at 8h (28800 s) and FULL FEASIBILITY: yes.
+        Bounded retries; returns file download or redirects with error.
+        """
+        try:
+            n_junctions = int(request.form.get("n_junctions_8h", 20))
+            n_streets = int(request.form.get("n_streets_8h", 45))
+            n_vehicles = int(request.form.get("n_vehicles_8h", 5))
+            depot = int(request.form.get("depot_8h", 0))
+            w_penalty = float(request.form.get("w_penalty_8h", 1.0))
+            max_attempts = int(request.form.get("max_attempts_8h", 300))
+        except (ValueError, TypeError):
+            flash("Invalid parameters for 8h instance.", "error")
+            return redirect(url_for("index"))
+        max_attempts = min(max(max_attempts, 1), MAX_ATTEMPTS_8H)
+        if not (N_MIN <= n_junctions <= N_MAX):
+            flash(f"N must be in [{N_MIN}, {N_MAX}]", "error")
+            return redirect(url_for("index"))
+        if not (M_MIN <= n_streets <= M_MAX):
+            flash(f"M must be in [{M_MIN}, {M_MAX}]", "error")
+            return redirect(url_for("index"))
+        if not (C_MIN <= n_vehicles <= C_MAX):
+            flash(f"C must be in [{C_MIN}, {C_MAX}]", "error")
+            return redirect(url_for("index"))
+        if depot < 0 or depot >= n_junctions:
+            flash("Depot must be in [0, N-1]", "error")
+            return redirect(url_for("index"))
+
+        for attempt in range(max_attempts):
+            seed = attempt
+            params = InstanceParams(
+                n_junctions=n_junctions,
+                n_streets=n_streets,
+                time_limit=T_8H,
+                n_vehicles=n_vehicles,
+                depot=depot,
+                w_penalty=w_penalty,
+                seed=seed,
+            )
+            try:
+                streets, vehicles = generate_instance(params)
+            except Exception:
+                continue
+            if not _is_feasible_for_t(n_junctions, depot, streets, T_8H, n_vehicles):
+                continue
+            if not check_full_feasibility_greedy(
+                n_junctions, depot, T_8H, n_vehicles, streets
+            ):
+                continue
+            params.time_limit = T_8H
+            content = instance_to_string(params, streets, vehicles)
+            filename = request.form.get("filename_8h", "instance_8h.txt").strip()
+            if not filename or "/" in filename or "\\" in filename:
+                filename = "instance_8h.txt"
+            if not filename.endswith(".txt"):
+                filename = filename.rstrip() + ".txt"
+            return Response(
+                content,
+                mimetype="text/plain",
+                headers={
+                    "Content-Disposition": f'attachment; filename="{filename}"',
+                    "X-Generation-Attempt": str(attempt + 1),
+                },
+            )
+
+        error_msg = (
+            f"No instance with FULL FEASIBILITY: yes found in {max_attempts} attempts. "
+            "Try smaller N/M, more vehicles (C), or higher max attempts."
+        )
+        return Response(
+            json.dumps({"error": error_msg}),
+            status=400,
+            mimetype="application/json",
+        )
+
+    @app.route("/download-8h/<name>", methods=["GET"])
+    def download_8h(name: str):
+        """Download a predefined 8h instance from instances/8h_strict/."""
+        if ".." in name or "/" in name or "\\" in name or not name.endswith(".txt"):
+            flash("Invalid filename.", "error")
+            return redirect(url_for("index"))
+        path = INSTANCES_8H_DIR / name
+        if not path.is_file():
+            flash("8h instance not found.", "error")
+            return redirect(url_for("index"))
+        return send_from_directory(
+            INSTANCES_8H_DIR,
+            name,
+            as_attachment=True,
+            download_name=name,
         )
 
     @app.route("/download-sample/<name>", methods=["GET"])
