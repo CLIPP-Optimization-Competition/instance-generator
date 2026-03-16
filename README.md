@@ -5,7 +5,7 @@ Instance generator for the **CLIPP** problem. The problem definition is given [h
 You can generate and validate instances in the browser:
 **https://clipp-insancegenerator.onrender.com**
 
-<img width="1000" height="1000" alt="image" src="https://github.com/user-attachments/assets/a7c84db0-c098-42d9-9c99-672ce63020ac" />
+![CLIPP UI](Screenshot%20from%202026-03-15%2023-37-16.png)
 
 Generate: set parameters and download the instance file. Validate: upload a `.txt` instance and see which checks pass or fail.
 
