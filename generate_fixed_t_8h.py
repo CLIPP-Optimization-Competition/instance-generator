@@ -48,7 +48,7 @@ def main() -> None:
     parser.add_argument("-m", "--streets", type=int, default=45, help="M (default: 45)")
     parser.add_argument("-c", "--vehicles", type=int, default=5, help="C (default: 5)")
     parser.add_argument("-s", "--depot", type=int, default=0)
-    parser.add_argument("-w", "--w-penalty", type=float, default=1.0)
+    parser.add_argument("-a", "--alpha", type=float, default=0.5)
     parser.add_argument("-o", "--output", type=str, default="instances/8h_strict/instance_8h.txt")
     parser.add_argument(
         "--max-attempts",
@@ -62,7 +62,7 @@ def main() -> None:
     n_streets = args.streets
     n_vehicles = args.vehicles
     depot = args.depot
-    w_penalty = args.w_penalty
+    alpha = args.alpha
     output = args.output
     max_attempts = args.max_attempts
 
@@ -76,7 +76,7 @@ def main() -> None:
             time_limit=T_8H,
             n_vehicles=n_vehicles,
             depot=depot,
-            w_penalty=w_penalty,
+            alpha=alpha,
             seed=seed,
         )
         try:

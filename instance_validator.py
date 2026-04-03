@@ -201,13 +201,13 @@ def validate_generated_instance(
     depot = params.depot
 
     # -------------------------------------------------------------------------
-    # 1. PARAMETER BOUNDS (problem: first line N M T C S W)
+    # 1. PARAMETER BOUNDS (problem: first line N M T C S α)
     # -------------------------------------------------------------------------
     instance_params_param_validator(params)
-    w = getattr(params, "w_penalty", 1.0)
-    if w < 0:
-        raise ValueError(f"PARAMETER BOUNDS: W (water waste penalty) must be >= 0, got {w}")
-    report(f"PARAMETER BOUNDS: junctions ({n}), streets ({m}), time limit ({T}s), vehicles ({C}), depot ({depot}), penalty (W={w})")
+    alpha = getattr(params, "alpha", 0.5)
+    if not (0 <= alpha <= 1):
+        raise ValueError(f"PARAMETER BOUNDS: α (coverage vs efficiency weight) must be in [0, 1], got {alpha}")
+    report(f"PARAMETER BOUNDS: junctions ({n}), streets ({m}), time limit ({T}s), vehicles ({C}), depot ({depot}), α={alpha}")
 
     # -------------------------------------------------------------------------
     # 2. STREET COUNT AND EACH STREET VALID
@@ -336,10 +336,10 @@ def _print_instance_summary(params: InstanceParams, streets: list[Street]) -> No
     total_mandatory_m = sum(s.length for s in streets if s.category == "M")
     total_optional_m = sum(s.length for s in streets if s.category == "O")
     sum_mandatory_time = sum(s.traversal_time for s in streets if s.category == "M")
-    w = getattr(params, "w_penalty", 1.0)
+    alpha = getattr(params, "alpha", 0.5)
     print("--- Instance summary ---")
     print(f"  Junctions: {params.n_junctions}, Streets: {params.n_streets}, Time limit: {params.time_limit}s, Vehicles: {params.n_vehicles}")
-    print(f"  Water waste penalty W: {w}")
+    print(f"  α (coverage vs efficiency weight): {alpha}")
     print(f"  Depot: {params.depot}")
     print(f"  Streets: {n_m} mandatory, {n_o} optional, {n_c} connector")
     print(f"  Total mandatory length: {total_mandatory_m} m")
@@ -349,7 +349,7 @@ def _print_instance_summary(params: InstanceParams, streets: list[Street]) -> No
 
 def parse_instance_file(path: str) -> tuple[InstanceParams, list[Street], list[str]]:
     """
-    Parse a v2 instance file (first line N M T C S W, M street lines, last line C vehicle types).
+    Parse a v2 instance file (first line N M T C S α, M street lines, last line C vehicle types).
     Returns (params, streets, vehicle_types). Raises on parse error.
     """
     with open(path, encoding="utf-8") as f:
@@ -358,20 +358,20 @@ def parse_instance_file(path: str) -> tuple[InstanceParams, list[Street], list[s
         raise ValueError(f"File has too few lines: {len(lines)}")
     parts = lines[0].split()
     if len(parts) != 6:
-        raise ValueError(f"First line must have 6 values (N M T C S W), got {len(parts)}")
+        raise ValueError(f"First line must have 6 values (N M T C S α), got {len(parts)}")
     n = int(parts[0])
     m = int(parts[1])
     T = int(parts[2])
     C = int(parts[3])
     depot = int(parts[4])
-    w = float(parts[5])
+    alpha = float(parts[5])
     params = InstanceParams(
         n_junctions=n,
         n_streets=m,
         time_limit=T,
         n_vehicles=C,
         depot=depot,
-        w_penalty=w,
+        alpha=alpha,
         seed=None,
     )
     if len(lines) != 1 + m + 1:
