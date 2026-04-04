@@ -23,7 +23,7 @@ class InstanceParams:
     time_limit: int
     n_vehicles: int
     depot: int
-    w_penalty: float = 1.0
+    alpha: float = 0.5
     seed: Optional[int] = None
 
 

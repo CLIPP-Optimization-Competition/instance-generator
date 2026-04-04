@@ -44,7 +44,7 @@ def create_app() -> Flask:
             "time_limit": 3600,
             "n_vehicles": 3,
             "depot": 0,
-            "w_penalty": 1.0,
+            "alpha": 0.5,
             "seed": "",
             "filename": "instance.txt",
         }
@@ -74,7 +74,7 @@ def create_app() -> Flask:
                     "time_limit": params.time_limit,
                     "n_vehicles": params.n_vehicles,
                     "depot": params.depot,
-                    "w_penalty": getattr(params, "w_penalty", 1.0),
+                    "alpha": getattr(params, "alpha", 0.5),
                     "vehicle_types": " ".join(vehicle_types),
                 }
             )
@@ -96,7 +96,7 @@ def create_app() -> Flask:
                         "time_limit": params.time_limit,
                         "n_vehicles": params.n_vehicles,
                         "depot": params.depot,
-                        "w_penalty": getattr(params, "w_penalty", 1.0),
+                        "alpha": getattr(params, "alpha", 0.5),
                         "vehicle_types": " ".join(vehicle_types),
                     }
                 )
@@ -120,7 +120,7 @@ def create_app() -> Flask:
             time_limit = int(request.form.get("time_limit", 3600))
             n_vehicles = int(request.form.get("n_vehicles", 3))
             depot = int(request.form.get("depot", 0))
-            w_penalty = float(request.form.get("w_penalty", 1.0))
+            alpha = float(request.form.get("alpha", 0.5))
             seed_raw = request.form.get("seed") or ""
             seed = int(seed_raw) if seed_raw.strip() else None
             filename = (request.form.get("filename") or "instance.txt").strip() or "instance.txt"
@@ -144,8 +144,8 @@ def create_app() -> Flask:
         if depot < 0 or depot >= n_junctions:
             flash("depot must be in [0, n_junctions-1]", "error")
             return redirect(url_for("index"))
-        if w_penalty < 0:
-            flash("w_penalty must be >= 0", "error")
+        if not (0 <= alpha <= 1):
+            flash("α must be in [0, 1]", "error")
             return redirect(url_for("index"))
 
         params = InstanceParams(
@@ -154,7 +154,7 @@ def create_app() -> Flask:
             time_limit=time_limit,
             n_vehicles=n_vehicles,
             depot=depot,
-            w_penalty=w_penalty,
+            alpha=alpha,
             seed=seed,
         )
 
@@ -218,20 +218,20 @@ def create_app() -> Flask:
                 raise ValueError(f"File has too few lines: {len(lines)}")
             parts = lines[0].split()
             if len(parts) != 6:
-                raise ValueError(f"First line must have 6 values (N M T C S W), got {len(parts)}")
+                raise ValueError(f"First line must have 6 values (N M T C S α), got {len(parts)}")
             n = int(parts[0])
             m = int(parts[1])
             T = int(parts[2])
             C = int(parts[3])
             depot = int(parts[4])
-            w = float(parts[5])
+            alpha = float(parts[5])
             params = InstanceParams(
                 n_junctions=n,
                 n_streets=m,
                 time_limit=T,
                 n_vehicles=C,
                 depot=depot,
-                w_penalty=w,
+                alpha=alpha,
                 seed=None,
             )
             if len(lines) != 1 + m + 1:
@@ -295,7 +295,7 @@ def create_app() -> Flask:
             n_streets = int(request.form.get("n_streets_8h", 45))
             n_vehicles = int(request.form.get("n_vehicles_8h", 5))
             depot = int(request.form.get("depot_8h", 0))
-            w_penalty = float(request.form.get("w_penalty_8h", 1.0))
+            alpha = float(request.form.get("alpha_8h", 0.5))
             max_attempts = int(request.form.get("max_attempts_8h", 300))
         except (ValueError, TypeError):
             flash("Invalid parameters for 8h instance.", "error")
@@ -322,7 +322,7 @@ def create_app() -> Flask:
                 time_limit=T_8H,
                 n_vehicles=n_vehicles,
                 depot=depot,
-                w_penalty=w_penalty,
+                alpha=alpha,
                 seed=seed,
             )
             try:

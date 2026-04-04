@@ -173,7 +173,7 @@ def instance_to_string(
     """Return instance file content as a string (same format as on disk)."""
     lines = [
         f"{params.n_junctions} {params.n_streets} {params.time_limit} "
-        f"{params.n_vehicles} {params.depot} {params.w_penalty}",
+        f"{params.n_vehicles} {params.depot} {params.alpha}",
         *(s.to_line() for s in streets),
         " ".join(vehicles),
     ]
@@ -216,8 +216,8 @@ def main() -> None:
         help="Number of vehicles (2 to 100)",
     )
     parser.add_argument("-s", "--depot", type=int, default=0)
-    parser.add_argument("-w", "--w-penalty", type=float, default=1.0,
-                        help="Water waste penalty factor W (>= 0)")
+    parser.add_argument("-a", "--alpha", type=float, default=0.5,
+                        help="Coverage vs efficiency weight α (0 to 1)")
     parser.add_argument("--seed", type=int, default=None)
     parser.add_argument("-o", "--output", type=str, default="instance.txt")
 
@@ -229,7 +229,7 @@ def main() -> None:
         time_limit=args.time_limit,
         n_vehicles=args.vehicles,
         depot=args.depot,
-        w_penalty=args.w_penalty,
+        alpha=args.alpha,
         seed=args.seed,
     )
     streets, vehicles = generate_instance(params)
