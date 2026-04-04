@@ -3,7 +3,7 @@
 Instance generator for the **CLIPP** problem. The problem definition is given [here](https://drive.google.com/file/d/1cpVz1BvfG_ItNjddxG_KMIG5tULpsbd7/view?usp=sharing).
 
 You can generate and validate instances in the browser:
-**https://clipp-insancegenerator.onrender.com**
+<a href="https://clipp-insancegenerator.onrender.com/" target="_blank" rel="noopener noreferrer">clipp-insancegenerator.onrender.com</a>
 
 ![CLIPP UI](Screenshot%20from%202026-03-15%2023-43-10.png)
 
