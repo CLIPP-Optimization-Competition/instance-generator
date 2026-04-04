@@ -8,14 +8,22 @@
     :root {
       color-scheme: light;
       --ui-scale: 2.0;
-      --bg: #c8c8f0;
-      --surface: #d7d7d7;
-      --border: #e2e2e6;
-      --border-subtle: #e0e0e0;
-      --text-main: #111827;
-      --text-muted: #6b7280;
-      --accent: #111827;
-      --accent-soft: #f3f4f6;
+      --brand: #60a5fa;
+      --brand-mid: #3b82f6;
+      --brand-deep: #2563eb;
+      --brand-soft: #eff6ff;
+      --brand-glow: rgba(59, 130, 246, 0.28);
+      --teal: #0d9488;
+      --teal-soft: #ccfbf1;
+      --amber: #d97706;
+      --amber-soft: #fffbeb;
+      --surface: #e8eefc;
+      --border: #e2e8f0;
+      --border-subtle: #e5e7eb;
+      --text-main: #0f172a;
+      --text-muted: #64748b;
+      --accent: var(--brand);
+      --accent-soft: var(--brand-soft);
       --danger: #b91c1c;
       --success: #15803d;
     }
@@ -28,7 +36,8 @@
       margin: 0;
       font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
       font-size: 18px;
-      background: var(--surface);
+      background: linear-gradient(165deg, #e0e7ff 0%, #f0f9ff 42%, #ecfdf5 100%);
+      background-attachment: fixed;
       color: var(--text-main);
       overflow-x: hidden;
     }
@@ -38,7 +47,7 @@
       max-width: none;
       min-height: 100vh;
       margin: 0;
-      background: var(--surface);
+      background: transparent;
       border-radius: 0;
       border: 0;
       box-shadow: none;
@@ -50,16 +59,29 @@
       display: flex;
       align-items: center;
       justify-content: space-between;
-      padding: 14px 18px;
-      border-bottom: 1px solid var(--border);
-      background: #fafafa;
+      padding: 16px 22px;
+      border-bottom: none;
+      background: linear-gradient(110deg, #3b82f6 0%, #60a5fa 45%, #93c5fd 100%);
+      box-shadow: 0 4px 24px var(--brand-glow);
     }
 
     .title {
-      font-size: 14px;
+      font-size: 15px;
+      font-weight: 600;
+      letter-spacing: 0.01em;
+      color: #f8fafc;
+    }
+
+    .header-tag {
+      font-size: 11px;
       font-weight: 500;
-      letter-spacing: 0.02em;
-      color: var(--text-muted);
+      letter-spacing: 0.14em;
+      text-transform: uppercase;
+      color: #c7d2fe;
+      padding: 4px 10px;
+      border-radius: 999px;
+      background: rgba(255, 255, 255, 0.12);
+      border: 1px solid rgba(255, 255, 255, 0.2);
     }
 
     .shell-body {
@@ -79,22 +101,25 @@
     h2 {
       margin: 0 0 8px;
       font-size: 15px;
-      font-weight: 500;
-      letter-spacing: 0;
+      font-weight: 600;
+      letter-spacing: -0.01em;
       display: flex;
       align-items: center;
-      gap: 6px;
+      gap: 8px;
+      color: #1e3a8a;
     }
 
     h2 span.badge {
-      font-size: 11px;
+      font-size: 10px;
       text-transform: uppercase;
-      letter-spacing: 0.12em;
-      padding: 1px 6px;
+      letter-spacing: 0.14em;
+      padding: 3px 8px;
       border-radius: 999px;
-      background: var(--accent-soft);
-      color: var(--text-muted);
-      border: 1px solid var(--border);
+      background: linear-gradient(135deg, var(--brand-mid) 0%, var(--brand) 55%, #7dd3fc 100%);
+      color: #fff;
+      border: none;
+      font-weight: 600;
+      box-shadow: 0 2px 8px var(--brand-glow);
     }
 
     p.description {
@@ -109,18 +134,29 @@
     }
 
     .panel {
-      border-radius: 10px;
-      padding: 16px 16px 14px;
+      border-radius: 14px;
+      padding: 18px 18px 16px;
       background: #ffffff;
-      border: 1px solid var(--border);
+      border: 1px solid rgba(99, 102, 241, 0.14);
+      box-shadow: 0 4px 24px rgba(15, 23, 42, 0.06);
+      min-width: 0;
     }
 
     .panel.secondary {
-      background: #f9fafb;
+      background: linear-gradient(180deg, #ffffff 0%, #f8fafc 100%);
+      border-color: rgba(13, 148, 136, 0.18);
     }
 
-    .panel {
-      min-width: 0;
+    section:first-of-type .panel {
+      border-top: 3px solid var(--brand);
+    }
+
+    section:nth-of-type(2) .panel.secondary {
+      border-top: 3px solid var(--teal);
+    }
+
+    section:nth-of-type(2) .panel:not(.secondary) {
+      border-top: 3px solid var(--amber);
     }
 
     .fieldset-grid {
@@ -149,6 +185,12 @@
       color: var(--text-muted);
     }
 
+    input[type="file"] {
+      font-size: 12px;
+      color: var(--text-muted);
+      padding: 4px 0;
+    }
+
     input[type="number"],
     input[type="text"] {
       font: inherit;
@@ -165,8 +207,8 @@
 
     input[type="number"]:focus,
     input[type="text"]:focus {
-      border-color: #111827;
-      box-shadow: 0 0 0 1px rgba(15, 23, 42, 0.07);
+      border-color: var(--brand);
+      box-shadow: 0 0 0 3px var(--brand-glow);
     }
 
     input::placeholder {
@@ -187,18 +229,18 @@
     button {
       font: inherit;
       border-radius: 999px;
-      border: 1px solid #111827;
-      padding: 6px 14px;
+      border: 1px solid transparent;
+      padding: 8px 16px;
       cursor: pointer;
       display: inline-flex;
       align-items: center;
       gap: 6px;
-      background: #111827;
-      color: #f9fafb;
+      background: linear-gradient(135deg, var(--brand-mid) 0%, var(--brand) 100%);
+      color: #fff;
       font-size: 13px;
-      font-weight: 500;
-      box-shadow: none;
-      transition: background 0.12s ease, border-color 0.12s ease, transform 0.06s ease;
+      font-weight: 600;
+      box-shadow: 0 4px 14px var(--brand-glow);
+      transition: filter 0.15s ease, transform 0.08s ease, box-shadow 0.15s ease;
     }
 
     button span.icon {
@@ -206,9 +248,9 @@
     }
 
     button:hover {
-      background: #020617;
-      border-color: #020617;
-      transform: translateY(-0.5px);
+      filter: brightness(1.06);
+      transform: translateY(-1px);
+      box-shadow: 0 6px 20px var(--brand-glow);
     }
 
     button:active {
@@ -216,14 +258,16 @@
     }
 
     button.secondary {
-      background: #ffffff;
-      color: #111827;
-      border-color: var(--border);
+      background: #fff;
+      color: var(--teal);
+      border: 2px solid #2dd4bf;
+      box-shadow: 0 2px 10px rgba(13, 148, 136, 0.12);
     }
 
     button.secondary:hover {
-      background: #f3f4f6;
-      border-color: #d4d4d8;
+      background: var(--teal-soft);
+      border-color: #14b8a6;
+      filter: none;
     }
 
     .flash-list {
@@ -283,8 +327,8 @@
     .samples h3 {
       margin: 0 0 6px;
       font-size: 13px;
-      font-weight: 500;
-      color: var(--text-main);
+      font-weight: 600;
+      color: var(--brand-deep);
     }
 
     .samples-table-wrap {
@@ -295,7 +339,7 @@
 
     .samples-table {
       width: 100%;
-      min-width: 520px;
+      min-width: 580px;
       border-collapse: collapse;
       font-size: 12px;
     }
@@ -308,24 +352,59 @@
       white-space: nowrap;
     }
 
+    .samples-table thead tr {
+      background: linear-gradient(180deg, var(--brand-soft) 0%, #f8fafc 100%);
+    }
+
     .samples-table th {
-      font-weight: 500;
-      color: var(--text-muted);
+      font-weight: 600;
+      color: var(--brand-deep);
+      padding-top: 8px;
+      padding-bottom: 8px;
+    }
+
+    .samples-table tbody tr:hover {
+      background: rgba(238, 242, 255, 0.55);
     }
 
     .samples-actions a {
       font-size: 12px;
       text-decoration: none;
-      color: #111827;
+      color: var(--brand-deep);
+      font-weight: 600;
       border-radius: 999px;
-      border: 1px solid var(--border);
-      padding: 3px 8px;
-      background: #f9fafb;
+      border: 1px solid rgba(59, 130, 246, 0.4);
+      padding: 4px 10px;
+      background: var(--brand-soft);
+      transition: background 0.12s ease, border-color 0.12s ease, color 0.12s ease;
+    }
+
+    .size-label {
+      display: inline-block;
+      font-size: 11px;
+      font-weight: 600;
+      text-transform: lowercase;
+      padding: 3px 10px;
+      border-radius: 999px;
+      border: 1px solid transparent;
+    }
+
+    .size-label--medium {
+      background: var(--teal-soft);
+      color: #0f766e;
+      border-color: rgba(13, 148, 136, 0.25);
+    }
+
+    .size-label--large {
+      background: #ede9fe;
+      color: #5b21b6;
+      border-color: rgba(91, 33, 182, 0.2);
     }
 
     .samples-actions a:hover {
-      background: #e5e7eb;
-      border-color: #d1d5db;
+      background: #dbeafe;
+      border-color: var(--brand-mid);
+      color: #1d4ed8;
     }
 
     button:disabled,
@@ -366,17 +445,21 @@
     .meta.note-latency {
       margin-top: 6px;
       font-size: 11px;
-      color: var(--text-muted);
+      color: #a16207;
+      padding: 6px 10px;
+      border-radius: 8px;
+      background: var(--amber-soft);
+      border: 1px solid rgba(217, 119, 6, 0.2);
     }
 
     code {
       font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
       font-size: 11px;
-      padding: 1px 4px;
-      border-radius: 4px;
-      background: #f3f4f6;
-      border: 1px solid #e5e7eb;
-      color: #374151;
+      padding: 2px 6px;
+      border-radius: 6px;
+      background: var(--brand-soft);
+      border: 1px solid rgba(59, 130, 246, 0.25);
+      color: var(--brand-deep);
     }
 
     /* Responsive: stack and reflow so nothing falls out when zoomed or narrow */
@@ -407,7 +490,7 @@
   <div class="shell">
     <div class="shell-header">
       <div class="title">CLIPP instance generator &amp; validator</div>
-      <div style="font-size: 11px; color: #9ca3af;">web UI</div>
+      <div class="header-tag">web UI</div>
     </div>
 
     <div class="shell-body">
@@ -419,7 +502,8 @@
           </h2>
           <p class="description">
             Fill in the parameters and click Generate to create a CLIPP instance; the file
-            will be downloaded to your computer.
+            will be downloaded to your computer. The header includes α for the official score:
+            <code>α × Coverage + (1 − α) × Efficiency</code> (both in [0, 1]; higher is better).
           </p>
 
           {% with messages = get_flashed_messages(with_categories=true) %}
@@ -505,7 +589,7 @@
               <div class="field">
                 <label>
                   α (alpha)
-                  <span class="hint">coverage vs efficiency</span>
+                  <span class="hint">1 = coverage only, 0 = water efficiency only</span>
                 </label>
                 <input
                   type="number"
@@ -561,11 +645,16 @@
           {% if samples %}
           <div class="samples">
             <h3>Example instances</h3>
+            <p class="description" style="margin-top: 0;">
+              Each file uses a different α: A coverage-only (1.0), B efficiency-only (0.0),
+              C 30/70 coverage–efficiency, D 50/50, E 70/30.
+            </p>
             <div class="samples-table-wrap">
             <table class="samples-table">
               <thead>
                 <tr>
                   <th>File</th>
+                  <th>Size</th>
                   <th>N</th>
                   <th>M</th>
                   <th>T</th>
@@ -580,6 +669,7 @@
                 {% for s in samples %}
                 <tr>
                   <td>{{ s.name }}</td>
+                  <td><span class="size-label size-label--{{ s.size_label }}">{{ s.size_label }}</span></td>
                   <td>{{ s.n_junctions }}</td>
                   <td>{{ s.n_streets }}</td>
                   <td>{{ s.time_limit }}</td>
@@ -647,8 +737,9 @@
           </h2>
           <p class="description">
             Generate or download instances with time limit fixed at 8 hours (28800 s) and
-            FULL FEASIBILITY: yes (greedy packing succeeds). Uses the same logic as
-            <code>generate_fixed_t_8h.py</code> (in-process; not running the script).
+            FULL FEASIBILITY: yes (greedy packing succeeds). Same rules as
+            <code>generate_fixed_t_8h.py</code> (in-process). Set α like above for the
+            normalized score (coverage vs water efficiency).
           </p>
           <div id="generate-8h-message" class="flash-list" style="display: none; margin-bottom: 10px;"></div>
           <form method="post" action="{{ url_for('generate_8h') }}" id="form-generate-8h" class="form-download">
@@ -670,7 +761,10 @@
                 <input type="number" name="depot_8h" min="0" value="0" required>
               </div>
               <div class="field">
-                <label>α (alpha)</label>
+                <label>
+                  α (alpha)
+                  <span class="hint">1 = coverage only, 0 = efficiency only</span>
+                </label>
                 <input type="number" name="alpha_8h" step="0.1" min="0" max="1" value="0.5" required>
               </div>
               <div class="field">
@@ -692,11 +786,16 @@
           </form>
           {% if samples_8h %}
           <h3 style="margin-top: 14px;">Predefined 8h instances</h3>
+          <p class="description" style="margin-top: 0;">
+            Four presets with diverse α: coverage-only, efficiency-only, 30/70, and 50/50
+            (no separate 70/30 file in this set).
+          </p>
           <div class="samples-table-wrap">
           <table class="samples-table">
             <thead>
               <tr>
                 <th>File</th>
+                <th>Size</th>
                 <th>N</th>
                 <th>M</th>
                 <th>T</th>
@@ -711,6 +810,7 @@
               {% for s in samples_8h %}
               <tr>
                 <td>{{ s.name }}</td>
+                <td><span class="size-label size-label--{{ s.size_label }}">{{ s.size_label }}</span></td>
                 <td>{{ s.n_junctions }}</td>
                 <td>{{ s.n_streets }}</td>
                 <td>{{ s.time_limit }}</td>

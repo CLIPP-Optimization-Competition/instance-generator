@@ -25,6 +25,13 @@ T_8H = 28800
 MAX_ATTEMPTS_8H = 500
 
 
+def _sample_size_label(n_junctions: int, n_streets: int) -> str:
+    """UI label for bundled samples: large vs medium from graph size."""
+    if n_junctions >= 100 or n_streets >= 400:
+        return "large"
+    return "medium"
+
+
 def create_app() -> Flask:
     app = Flask(__name__)
     # This is only used for flash messages; in production you should override it.
@@ -76,6 +83,9 @@ def create_app() -> Flask:
                     "depot": params.depot,
                     "alpha": getattr(params, "alpha", 0.5),
                     "vehicle_types": " ".join(vehicle_types),
+                    "size_label": _sample_size_label(
+                        params.n_junctions, params.n_streets
+                    ),
                 }
             )
 
@@ -98,6 +108,9 @@ def create_app() -> Flask:
                         "depot": params.depot,
                         "alpha": getattr(params, "alpha", 0.5),
                         "vehicle_types": " ".join(vehicle_types),
+                        "size_label": _sample_size_label(
+                            params.n_junctions, params.n_streets
+                        ),
                     }
                 )
 
