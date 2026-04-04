@@ -313,6 +313,9 @@ def create_app() -> Flask:
         if depot < 0 or depot >= n_junctions:
             flash("Depot must be in [0, N-1]", "error")
             return redirect(url_for("index"))
+        if not (0 <= alpha <= 1):
+            flash("α must be in [0, 1]", "error")
+            return redirect(url_for("index"))
 
         for attempt in range(max_attempts):
             seed = attempt

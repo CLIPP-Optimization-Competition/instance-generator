@@ -19,9 +19,9 @@ Generate: set parameters and download the instance file. Validate: upload a `.tx
 
 **Generate an instance (CLI):**
 ```bash
-python instance_generator.py -n 20 -m 45 -t 3600 -c 3 -s 0 -w 1.0 -o instances/my_instance.txt
+python instance_generator.py -n 20 -m 45 -t 3600 -c 3 -s 0 -a 0.5 -o instances/my_instance.txt
 ```
-Use `python instance_generator.py --help` for all options (`-n` junctions, `-m` streets, `-t` time limit, `-c` vehicles, `-s` depot, `-w` penalty, `--seed` optional, `-o` output path).
+Use `python instance_generator.py --help` for all options (`-n` junctions, `-m` streets, `-t` time limit, `-c` vehicles, `-s` depot, `-a` α in [0, 1] (coverage vs efficiency), `--seed` optional, `-o` output path).
 
 **Validate an instance:**
 ```bash
@@ -47,7 +47,7 @@ Then open **http://localhost:5000**.
 
 ## Validation checks
 
-1. **Parameter bounds** — *N*, *M*, *T*, *C*, depot, and *W* within problem bounds; *M* between *N*−1 and max edges.
+1. **Parameter bounds** — *N*, *M*, *T*, *C*, depot, and α in [0, 1] within problem bounds; *M* between *N*−1 and max edges.
 2. **Streets** — Correct number of streets; each street has valid junctions, direction, time, length, category, requirement; no duplicate edge between the same two junctions.
 3. **Vehicles** — Exactly *C* vehicle types, each in {S, M, L}.
 4. **Graph** — Every junction is reachable from the depot following street directions.

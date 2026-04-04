@@ -66,6 +66,10 @@ def main() -> None:
     output = args.output
     max_attempts = args.max_attempts
 
+    if not (0 <= alpha <= 1):
+        print("alpha must be in [0, 1]", file=sys.stderr)
+        sys.exit(1)
+
     print(f"Fixed T = {T_8H} s (8h). Trying up to {max_attempts} attempts (N={n_junctions}, M={n_streets}, C={n_vehicles})...")
 
     for attempt in range(max_attempts):
