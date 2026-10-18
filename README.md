@@ -43,6 +43,16 @@ Then open **http://localhost:5000**.
 4. Generate **C** vehicle types at random from {S, M, L}.
 5. Compute the minimum time limit so that: (a) each mandatory street has depot→street→depot ≤ *T*, and (b) total mandatory traversal time ≤ *C*×*T*. Raise *T* with slack so instances are not too tight.
 
+## Toy instances
+
+The folder `instances/toy/` contains small instances and their solutions. The
+generator did not make them. The authors made them by hand.
+
+- `toy_8_15.txt` and `toy_8_15_solution.txt` are the example in Section 3.1 of
+  the paper "The CLIPP Street Cleaning Competition 2026" (Fig. 1 and Table 1).
+  The instance has 8 junctions, 15 streets, T = 200 s, α = 0.5 and four
+  vehicles. The solution has the score 0.978.
+
 ---
 
 ## Validation checks
